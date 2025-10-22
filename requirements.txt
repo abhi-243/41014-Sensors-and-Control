@@ -1,15 +1,40 @@
-# Core numerical and visualization libraries
-numpy
-matplotlib
-opencv-python
+# Python (pip) dependencies discovered in the repository
+# Use your virtual environment and run: pip install -r requirements.txt
+
+# Core numerical and image libraries
+numpy>=1.19
+opencv-python>=4.5
 opencv-contrib-python
 
-# Intel RealSense SDK Python bindings
-pyrealsense2
+# Intel RealSense Python bindings (platform-specific binary package)
+pyrealsense2>=2.50.0
 
-# Robotics Toolbox & SpatialMath
-roboticstoolbox-python
-spatialmath-python
+# Plotting
+matplotlib>=3.3
+
+# Robotics Toolbox and SpatialMath (Python packages used as imports: "roboticstoolbox", "spatialmath")
+# These packages on PyPI are named `roboticstoolbox-python` and `spatialmath-python`.
+roboticstoolbox-python>=1.0
+spatialmath-python>=0.10
+
+# ------------------------------------------------------------------
+# ROS dependencies (NOT installed via pip)
+# The following are ROS packages used by the ROS-based scripts in src/.
+# Install these via your ROS distribution (apt/rosdep) / system package manager:
+# - rospy
+# - actionlib
+# - control_msgs
+# - trajectory_msgs
+# - any custom ROS message packages used by your robot stack
+# Example (Ubuntu / ROS): sudo apt install ros-<distro>-ros-comm ros-<distro>-actionlib 
+# and use rosdep to install package dependencies for ROS packages in this workspace.
+# ------------------------------------------------------------------
+
+# Notes:
+# - pyrealsense2 is a binary package that may require the Intel RealSense SDK or
+#   platform-specific wheels. On Windows it's usually installed with pip (pip install pyrealsense2).
+# - If you use a requirements lockfile or pinned versions for deployment, consider
+#   generating one with pip-tools or pip freeze after creating a virtual environment.# Core numerical and visualization libraries
 
 # Optional (if you use ROS-like message handling without ROS)
 roslibpy
