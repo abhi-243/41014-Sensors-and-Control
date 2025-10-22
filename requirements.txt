@@ -1,0 +1,15 @@
+# Core numerical and visualization libraries
+numpy
+matplotlib
+opencv-python
+opencv-contrib-python
+
+# Intel RealSense SDK Python bindings
+pyrealsense2
+
+# Robotics Toolbox & SpatialMath
+roboticstoolbox-python
+spatialmath-python
+
+# Optional (if you use ROS-like message handling without ROS)
+roslibpy
