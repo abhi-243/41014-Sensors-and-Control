@@ -1,0 +1,56 @@
+TERMINAL 1
+
+1) **Allow Docker GUI access**
+xhost +local:docker
+
+2) **Start your existing container**
+docker start -ai ur3_env
+
+3) **Source ROS Noetic and workspace**
+source /opt/ros/noetic/setup.bash
+source /root/catkin_ws/devel/setup.bash
+
+4) **Verify your workspace sees your repo**
+rospack list | grep my_robot_control
+
+**EXPECTED OUTPUT IS: my_robot_control /root/catkin_ws/src/my_robot_control **
+
+
+5)
+roslaunch ur_robot_driver ur3e_bringup.launch robot_ip:=192.168.0.192
+
+
+
+TERMINAL 2
+
+1) **Allow Docker GUI access**
+xhost +local:docker
+
+2) **Attach to the same container**
+docker exec -it \
+  -e DISPLAY=$DISPLAY \
+  -e QT_X11_NO_MITSHM=1 \
+  ur3_env bash
+
+3) **Source ROS Noetic and workspace**
+source /opt/ros/noetic/setup.bash
+source /root/catkin_ws/devel/setup.bash
+
+4) **Verify your workspace sees your repo**
+rospack list | grep my_robot_control
+
+5) **rebuild workspace if anything C++ changed**
+cd /root/catkin_ws
+catkin_make
+source devel/setup.bash
+
+6) **GIVE ACCESS AND CONTROL TO ALL THE PYTHON FILES**
+chmod +x /root/catkin_ws/src/my_robot_control/src/*.py
+
+7) **CHECK AVAILABLE SCRIPTS**
+ls -1 /root/catkin_ws/src/my_robot_control/src/*.py
+
+8) **Run your Python script**
+rosrun my_robot_control <your_script>.py
+
+**FOR THE GUI TOOLS: rosrun rqt_joint_trajectory_controller rqt_joint_trajectory_controller OR rosrun rviz rviz **
