@@ -51,18 +51,34 @@ class IBVS_Controller():
             raise ValueError("Target and current feature counts do not match.")
         jc = self.compute_image_jacobians(f)
         vc = self.calculate_camera_velocities(jc, f)
-        q_velocities = self.calculate_joint_velocities(vc)
+        #q_velocities = self.calculate_joint_velocities(vc)
 
-        return q_velocities
+        return vc
 
-    def feature_extraction(self,image, numFeatures): # extracts features from a rgb frame
+    def feature_extraction(self, image, numFeatures):
+        # Ensure input is a numpy array (RealSense frame → np array)
+        if not isinstance(image, np.ndarray):
+            image = np.asanyarray(image.get_data())
+    
+        # Convert to grayscale
         grayscale = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        corners = cv2.goodFeaturesToTrack(grayscale,maxCorners=numFeatures, qualityLevel=0.1, minDistance=10, useHarrisDetector=True)
+    
+        # Extract strong corner features
+        corners = cv2.goodFeaturesToTrack(
+            grayscale,
+            maxCorners=numFeatures,
+            qualityLevel=0.1,
+            minDistance=10,
+            useHarrisDetector=True
+        )
+    
         if corners is not None:
             corners = corners.reshape(-1, 2)
         else:
             raise ValueError("No features found.")
+    
         return corners
+
     
     def compute_image_jacobians(self, features): 
 

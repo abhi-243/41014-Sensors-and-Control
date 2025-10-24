@@ -1,6 +1,7 @@
 import pyrealsense2 as rs
 import numpy as np
 import cv2
+from IBVS import IBVS_Controller
 
 # ---- Realsense setup ----
 pipeline = rs.pipeline()
@@ -12,9 +13,14 @@ depth_sensor = profile.get_device().first_depth_sensor()
 depth_scale = depth_sensor.get_depth_scale()
 align = rs.align(rs.stream.color)   # Align depth to color frame
 
+isCalibrated = False
+
 # ---- ArUco setup ----
 aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 parameters = cv2.aruco.DetectorParameters()
+
+controller = IBVS_Controller(proportional_constant=0.1,camera_profile=profile,featureCount=3,robot_jacobian=None)
+
 
 try:
     while True:
@@ -24,6 +30,9 @@ try:
         color_frame = aligned.get_color_frame()
         if not depth_frame or not color_frame:
             continue
+        if isCalibrated is False:
+            controller.calibrate_target_features(color_frame)
+            isCalibrated = True
 
         color_image = np.asanyarray(color_frame.get_data())
         gray = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
@@ -44,6 +53,11 @@ try:
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1)
 
         cv2.imshow('ArUco Detection + Depth', color_image)
+        
+        velocities = controller.run(color_frame)
+        print(f"Camera Velocities: \n {velocities} \r")
+
+        
         if cv2.waitKey(1) & 0xFF == 27:  # ESC
             break
 
