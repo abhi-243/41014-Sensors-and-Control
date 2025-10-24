@@ -1,0 +1,58 @@
+# Usage:
+#   ur3_spinup                 # defaults to 192.168.0.192
+#   ur3_spinup 192.168.0.123   # custom robot IP
+ur3_spinup() {
+  set -euo pipefail
+  local CONTAINER="ur3_env"
+  local ROBOT_IP="${1:-192.168.0.192}"
+  local SRC="source /opt/ros/noetic/setup.bash && source /root/catkin_ws/devel/setup.bash"
+
+  echo "[1/9] Allowing X11 access for Docker…"
+  xhost +local:docker >/dev/null 2>&1 || true
+
+  echo "[2/9] Verifying container exists…"
+  if ! docker ps -a --format '{{.Names}}' | grep -qx "$CONTAINER"; then
+    echo "ERROR: Container '$CONTAINER' not found. Create it first."; return 1
+  fi
+
+  echo "[3/9] Starting container if needed…"
+  if ! docker ps --format '{{.Names}}' | grep -qx "$CONTAINER"; then
+    docker start "$CONTAINER" >/dev/null
+  fi
+
+  echo "[4/9] Sourcing ROS + workspace and verifying package visibility…"
+  # Shows the expected line if present; exits if missing.
+  docker exec "$CONTAINER" bash -lc "$SRC && \
+    if rospack list | grep -qE '^my_robot_control[[:space:]]+/root/catkin_ws/src/my_robot_control$'; then \
+      rospack list | grep -E '^my_robot_control[[:space:]]+/root/catkin_ws/src/my_robot_control$'; \
+    else \
+      echo 'ERROR: my_robot_control not found in rospack list (or wrong path).'; exit 1; \
+    fi"
+
+  echo "[5/9] Launching UR driver (background) inside container…"
+  docker exec -d \
+    -e DISPLAY="$DISPLAY" \
+    -e QT_X11_NO_MITSHM=1 \
+    "$CONTAINER" bash -lc "$SRC && roslaunch ur_robot_driver ur3e_bringup.launch robot_ip:=$ROBOT_IP"
+
+  echo "[6/9] Rebuilding workspace (if anything C++ changed)…"
+  docker exec "$CONTAINER" bash -lc "$SRC && cd /root/catkin_ws && catkin_make && source devel/setup.bash"
+
+  echo "[7/9] Making all package Python files executable…"
+  docker exec "$CONTAINER" bash -lc "chmod +x /root/catkin_ws/src/my_robot_control/src/*.py || true"
+
+  echo "[8/9] Listing available Python scripts…"
+  docker exec "$CONTAINER" bash -lc "ls -1 /root/catkin_ws/src/my_robot_control/src/*.py || true"
+
+  echo "[9/9] Done. (Skipped Terminal 2 step 8: running your script)"
+  echo
+  echo "Next steps (manual, when you’re ready):"
+  echo "  # interactive shell like Terminal 2"
+  echo "  docker exec -it -e DISPLAY=\$DISPLAY -e QT_X11_NO_MITSHM=1 $CONTAINER bash"
+  echo
+  echo "  # from inside the container:"
+  echo "  $SRC && rosrun my_robot_control <your_script>.py"
+  echo "  # GUI tools if needed:"
+  echo "  $SRC && rosrun rqt_joint_trajectory_controller rqt_joint_trajectory_controller"
+  echo "  $SRC && rosrun rviz rviz"
+}
