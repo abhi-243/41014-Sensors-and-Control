@@ -2,7 +2,7 @@
 
 **Subject:** 41014 Sensors and Control for Mechatronic Systems  
 **University:** University of Technology Sydney (UTS)  
-**Author:** Abhi Naglapura  
+**Author:** Abhi Naglapura, Hamish Judson, Dylan Bitar, Jacob Bakhos
 **License:** MIT
 
 ---
